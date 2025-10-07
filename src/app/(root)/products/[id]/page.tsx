@@ -4,6 +4,7 @@ import { Card, CollapsibleSection, ProductGallery, SizePicker } from "@/componen
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import ColorSwatches from "@/components/ColorSwatches";
 import { getProduct, getProductReviews, getRecommendedProducts, type Review, type RecommendedProduct } from "@/lib/actions/product";
+import { validate as isValidUUID } from "uuid";
 
 type GalleryVariant = { color: string; images: string[] };
 
@@ -92,8 +93,23 @@ async function AlsoLikeSection({ productId }: { productId: string }) {
   );
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function ProductDetailPage(props: { params: { id: string } }) {
+  const params = await props.params; // Await params as required by Next.js canary
+  const { id } = params;
+
+  // Validate the id is a UUID
+  if (!isValidUUID(id)) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <nav className="py-4 text-caption text-dark-700">
+          <Link href="/" className="hover:underline">Home</Link> / <Link href="/products" className="hover:underline">Products</Link> /{" "}
+          <span className="text-dark-900">Not found</span>
+        </nav>
+        <NotFoundBlock />
+      </main>
+    );
+  }
+
   const data = await getProduct(id);
 
   if (!data) {
